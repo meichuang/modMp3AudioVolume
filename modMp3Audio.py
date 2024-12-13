@@ -2,10 +2,58 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import sys
+
 from pydub import AudioSegment
 import numpy as np
 import os
 import shutil
+def main():
+    # 检查命令行参数
+    if len(sys.argv) > 1:
+        #查询单个文件的音量
+        if sys.argv[1] == '-q' and len(sys.argv) == 3:
+            # 执行 查询文件音量 操作
+            print_audio_volume2(sys.argv[2])
+
+        #修改单个文件的音量
+        elif sys.argv[1] == '-c' and len(sys.argv) == 4:
+            # 执行 b 操作
+            try:
+                target_volume = float(sys.argv[3])
+            except ValueError:
+                print("转换失败，输入的音量不是一个有效的浮点数")
+            out_file_path = sys.argv[2].replace(".mp3", "_adjusted.mp3")
+            mod_file_audio(sys.argv[2], out_file_path, target_volume)
+            print("转换结果:" + out_file_path)
+        #查询目录下所有mp3文件的音量
+        elif sys.argv[1] == '-qa':
+            # 执行 c 操作
+            print_dir(sys.argv[2])
+        #修改目录下所有mp3文件的音量
+        elif sys.argv[1] == '-ca' and len(sys.argv) == 5:
+            # 执行 b 操作
+            try:
+                target_volume = float(sys.argv[4])
+            except ValueError:
+                print("转换失败，输入的音量不是一个有效的浮点数")
+
+            if not os.path.exists(sys.argv[3]):
+                os.makedirs(sys.argv[3])
+
+            mod_audio_volume(sys.argv[2], sys.argv[3], target_volume)
+        else:
+            printUsage()
+    else:
+        printUsage()
+
+def printUsage():
+    print("错误：参数不正确。")
+    print("用法：")
+    print("  python modMp3Audio.py -q 文件名  # 执行 查询单个文件的音量 操作")
+    print("  python modMp3Audio.py -qa 目录名  # 执行 查询目录下所有文件的音量 操作")
+    print("  python modMp3Audio.py -c 文件名 音量  # 执行 修改单个文件的音量 操作")
+    print("  python modMp3Audio.py -ca 源目录 目的目录 音量  # 执行 修改目录下所有文件音量 操作")
 
 def print_audio_volume(audio_path):
     song = AudioSegment.from_file(audio_path, format='mp3')
@@ -20,7 +68,7 @@ def print_audio_volume2(audio_path):
     audio = AudioSegment.from_mp3(audio_path)
     # 计算平均音量
     average_volume = audio.dBFS
-    print(f"Original volume of {audio_path}: {average_volume} dBFS")
+    print(f"Volume of {audio_path}: {average_volume} dBFS")
 
 def print_dir(directory_path):
     # 遍历目录
@@ -29,7 +77,7 @@ def print_dir(directory_path):
         ext = os.path.splitext(filename)[1].lower()
         if ext == '.mp3':
             print(filename, end=": ")
-            print_audio_volume(os.path.join(directory_path, filename))
+            print_audio_volume2(os.path.join(directory_path, filename))
 
 def rename_file(directory_path):
     # 遍历目录
@@ -60,14 +108,14 @@ def rename_file(directory_path):
             print(f"Copied and renamed '{old_file_path}' to '{new_file_path}'")
             shutil.copy2(old_file_path, new_file_path)
 
-def mod_audio_volume(directory_path):
-    for filename in os.listdir(directory_path):
+def mod_audio_volume(in_path, out_path, target_volume):
+    for filename in os.listdir(in_path):
         if filename.endswith(".mp3"):
             # 构建完整的文件路径
-            in_file_path = os.path.join(directory_path, filename)
-            out_file_path = os.path.join(directory_path + r"\mod", filename)
+            in_file_path = os.path.join(in_path, filename)
+            out_file_path = os.path.join(out_path, filename)
             # 加载音频文件
-            mod_file_audio(in_file_path, out_file_path, -8.9)
+            mod_file_audio(in_file_path, out_file_path, target_volume)
 
 
 def mod_file_audio(in_file_path, our_file_path, target_volume):
@@ -87,16 +135,8 @@ def mod_file_audio(in_file_path, our_file_path, target_volume):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-
-    # 指定目录路径
-    directory_path = r'D:\temp\05 弘扬世界和平\new'
-    #rename_file(directory_path)
-    #print_audio_volume(r"D:\temp\05 弘扬世界和平\new\024_《弘扬世界和平》2.8.mp3")
-    #print_audio_volume2(r"D:\temp\05 弘扬世界和平\new\015_《弘扬世界和平》1.12.mp3")
-    #mod_file_audio(r"D:\temp\05 弘扬世界和平\new\024_《弘扬世界和平》2.8.mp3", r"D:\temp\05 弘扬世界和平\new\mod\024_《弘扬世界和平》2.8.mp3", -8.90898)
-    #print_audio_volume(r"D:\temp\05 弘扬世界和平\new\mod\024_《弘扬世界和平》2.8.mp3")
-
-    mod_audio_volume(directory_path)
+    main()
+    #mod_audio_volume(directory_path)
 
 
 
